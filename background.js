@@ -358,6 +358,7 @@ function ensureItem(arr, name, value) {
 
 function requestListener (details) {
 	var find = false;
+	var unsafeHeaderArr = []; //修改：传递不完全的Header
 	details.requestHeaders.forEach(function (item, index) {
 		if (item.name === 'cross-request-open-sign' && item.value == '1') {
 			requestBatch[details.requestId] = true;
@@ -368,8 +369,16 @@ function requestListener (details) {
 				details.requestHeaders = ensureItem(details.requestHeaders, v.name, v.value)
 			})
 		}
+		
+		if(item.name == 'cross-request-unsafe-headers-list'){
+			unsafeHeaderArr = decode(item.value);
+		}
 	})
-
+	
+	unsafeHeaderArr.forEach(function (item) {
+		details.requestHeaders.push({ name: item.name, value: item.value });
+	})
+	
 	return { requestHeaders: details.requestHeaders };
 }
 
